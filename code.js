@@ -109,7 +109,7 @@ async function enableNotes() {
         addVanJs();
         listenOnMemberListChange();
         addNoteButtons();
-        addNoteBookIcon();
+        //addNoteBookIcon();
     // } catch (err) {
     //     const url = "https://lcr.churchofjesuschrist.org/records/member-list";
         
@@ -137,7 +137,7 @@ async function getInfoTypes(){
 }
 
 function listenOnMemberListChange() {
-    const targetNode = document.querySelector("table.member-list").querySelector("tbody");
+    const targetNode = document.querySelector("table.eden-table-table").querySelector("tbody");
     const observer = new MutationObserver(function(mutationsList) {
         addNoteButtons();
     });
@@ -154,7 +154,8 @@ function addNoteButtons() {
     } = van.tags;
     if (!tag("pencil-image")) {
         // add the pencil in the header
-        const cell = document.querySelector("th.fn");
+        //const cell = document.querySelector("th.fn");
+        const cell = document.querySelector("table.eden-table-table").querySelectorAll("th")[1]
         const newCell = th({
             id: "pencil-image"
         });
@@ -373,20 +374,21 @@ function showNotesInGoogleSheets() {
     window.open(`https://docs.google.com/spreadsheets/d/${window.config.token}/edit`, "_blank")
 }
 
-function addNoteBookIcon() {
-    if (tag("notebook-icon")) {
-        return
-    }
-    const {
-        div
-    } = van.tags
-    const icon = div({
-        id: "notebook-icon,cursor:pointer"
-    })
-    icon.addEventListener("click", showNotesInGoogleSheets)
-    icon.innerHTML = atob("PHN2ZyB2aWV3Qm94PSIwIDAgMzAgMzAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgcm9sZT0iaW1nIiBjbGFzcz0ic2MtMXU5NWxkMi0wIGNKeVlCcSI+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMTkgMkg1YTEgMSAwIDAgMC0xIDF2MThhMSAxIDAgMCAwIDEgMWgxNGExIDEgMCAwIDAgMS0xVjNhMSAxIDAgMCAwLTEtMXptLTQgMTguNUg1LjV2LTE3SDd2Ni4yN2MwIC4yOS4xOS4zOS40Mi4yNGwxLjgzLTEuMTVMMTEuMDggMTBjLjIzLjE1LjQyIDAgLjQyLS4yNFYzLjVIMTV6bTMuNSAwSDE3di0xN2gxLjV6Ij4gPC9wYXRoPjwvc3ZnPg==")
-    tag("member-list-form").appendChild(icon)
-}
+// function addNoteBookIcon() {
+//     return
+//     if (tag("notebook-icon")) {
+//         return
+//     }
+//     const {
+//         div
+//     } = van.tags
+//     const icon = div({
+//         id: "notebook-icon,cursor:pointer"
+//     })
+//     icon.addEventListener("click", showNotesInGoogleSheets)
+//     icon.innerHTML = atob("PHN2ZyB2aWV3Qm94PSIwIDAgMzAgMzAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgcm9sZT0iaW1nIiBjbGFzcz0ic2MtMXU5NWxkMi0wIGNKeVlCcSI+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMTkgMkg1YTEgMSAwIDAgMC0xIDF2MThhMSAxIDAgMCAwIDEgMWgxNGExIDEgMCAwIDAgMS0xVjNhMSAxIDAgMCAwLTEtMXptLTQgMTguNUg1LjV2LTE3SDd2Ni4yN2MwIC4yOS4xOS4zOS40Mi4yNGwxLjgzLTEuMTVMMTEuMDggMTBjLjIzLjE1LjQyIDAgLjQyLS4yNFYzLjVIMTV6bTMuNSAwSDE3di0xN2gxLjV6Ij4gPC9wYXRoPjwvc3ZnPg==")
+//     tag("member-list-form").appendChild(icon)
+// }
 
 function addVanJs() {
     var script = document.createElement('script');
