@@ -1,4 +1,4 @@
-// v1
+// v2
 async function showMenu(){
     const menu = document.createElement('div');
     menu.id="addInSubNav"
@@ -78,9 +78,7 @@ function closeMenu(){
 
 
 
-function tag(id) {
-    return document.getElementById(id)
-}
+
 async function getNotes(id) {
     const url = `https://script.google.com/macros/s/${config.deploymentId}/exec`;
     const requestHeaders = new Headers();
@@ -414,63 +412,6 @@ async function showMenu(){
 
 }
 
-// function getAddInLinks(){
-//   const addIns = [
-//     { label:"Member Notes",
-//       test: ()=>{
-//         if(location.pathname==="/records/member-list"){
-//           return {status:"active",clickString:`getFromGist('881423b25094fd4fd6c503b545971be4','member-notes.js')`}
-//         }else{
-//           return {status:"inactive",clickString:`window.location.href = 'https://lcr.churchofjesuschrist.org/records/member-list'`}
-//         }
-        
-//       }
-//     },
-//     { label:"Update Contacts",
-//       test: ()=>{
-//         if(location.hostname==="lcr.churchofjesuschrist.org"){
-//           return {status:"active",clickString:`getFromGist('881423b25094fd4fd6c503b545971be4','contacts.js')`}
-//         }else{
-//           return {status:"inactive",clickString:`window.location.href = 'https://lcr.churchofjesuschrist.org/records/member-list'`}
-//         }
-        
-//       }
-//     },
-//     { label:"Ward Organization",
-//       test: ()=>{
-//         if(location.pathname.startsWith("/orgs/")){
-//           return {status:"active",clickString:`getFromGist('881423b25094fd4fd6c503b545971be4','callings.js')`}
-//         }else{
-//             return {status:"inactive",clickString:`window.location.href = 'https://lcr.churchofjesuschrist.org//orgs/stake-leadership'`}
-//         }
-        
-//       }
-//     }
-//   ]
-//   const linkArrays={active:[],inactive:[]}
-//   for(const addIn of addIns){
-//     const testResult = addIn.test()
-//     linkArrays[testResult.status].push([`<a class="subnav-link" style="display:block" onclick="${testResult.clickString};return false">${addIn.label}</a>`])
-//   }
-//   const html=[`<div class="subnav-header">Active Tools</div>`]
-//   html.push('<div class="active">')
-//   for(const link of linkArrays.active){
-//     html.push(link)
-//   }
-//   html.push('</div><div class="subnav-header" style="margin-top:1rem">Inactive Tools</div><div class="inactive">')
-//   for(const link of linkArrays.inactive){
-//     html.push(link)
-//   }
-//   html.push('</div>')
-
-//   return html.join("\n")
-
-  
-// }
-
-function tag(id){
-  return document.getElementById(id)
-}
 function closeMenu(){
   tag("addInSubNav").remove()
 }
@@ -487,9 +428,6 @@ function initializeMessageSystem(){
         newDiv.id = "canvas"
         document.body.appendChild(newDiv);
     }    
-}
-function tag(id){
-  return document.getElementById(id)
 }
 
 function message(messageText, title, type, duration=0){
@@ -833,11 +771,8 @@ function idify(inputString){
 
 async function getOrganization(orgData){
   //console.log("orgData",orgData)
-    if(typeof initializeMessageSystem === "function"){
-        initializeMessageSystem()
-    }else{
-        getFromGist("881423b25094fd4fd6c503b545971be4","message.js")
-    }    
+  initializeMessageSystem()
+
   const callingsInProgress = await getCallingsInProgress()
   //console.log("callings in progress", callingsInProgress)
   window.members = await getMembers()
