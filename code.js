@@ -1,4 +1,4 @@
-// v2
+// v3
 async function showMenu(){
     const menu = document.createElement('div');
     menu.id="addInSubNav"
@@ -103,20 +103,21 @@ async function enableNotes() {
     
     console.log("window.config", window.config)  
 
-    try {
+    //try {
         window.globals = {rows: 0};
         window.config.infoTypes=await getInfoTypes()
         addVanJs();
         listenOnMemberListChange();
         addNoteButtons();
         addNoteBookIcon();
-    } catch (err) {
-        const url = "https://lcr.churchofjesuschrist.org/records/member-list";
-        if (!window.location.href.startsWith(url)) {
-            alert("You must first log into LCR and open the Member Directory. Redirecting you now.");
-            window.location.href = url;
-        }
-    }
+    // } catch (err) {
+    //     const url = "https://lcr.churchofjesuschrist.org/records/member-list";
+        
+    //     if (!window.location.href.startsWith(url)) {
+    //         alert("You must first log into LCR and open the Member Directory. Redirecting you now.");
+    //         window.location.href = url;
+    //     }
+    // }
 }
 
 
