@@ -1,0 +1,16 @@
+{
+  "scriptId": "1V7B6m0ds-Nfg6hLQ9NBttYN-meeSXGSi9WFlnMel5XAlY8TxdEa3QAh4",
+  "rootDir": "meeting-notes",
+  "scriptExtensions": [
+    ".js",
+    ".gs"
+  ],
+  "htmlExtensions": [
+    ".html"
+  ],
+  "jsonExtensions": [
+    ".json"
+  ],
+  "filePushOrder": [],
+  "skipSubdirectories": false
+}

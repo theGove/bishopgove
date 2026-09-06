@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Flock",
+  "version": "1.0",
+  "description": "Sync your flock to to our google contacts",
+  "action": {
+    "default_icon": "icon.png"
+  },
+  "side_panel": {
+    "default_path": "menu.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["activeTab", "scripting", "sidePanel", "tabs", "storage"],
+  "host_permissions": ["https://lcr.churchofjesuschrist.org/*", "https://script.google.com/*", "https://directory.churchofjesuschrist.org/*", "https://lh3.googleusercontent.com/*"]
+}

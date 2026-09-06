@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cancel Appointment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f5f7;
+      color: #1c2024;
+      padding: 16px;
+    }
+    .card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      padding: 20px;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 4px; }
+    p.sub { color: #5a6472; margin: 0 0 16px; font-size: 0.9rem; }
+    .danger-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #b3261e;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .danger-btn:disabled { background: #e0a9a5; cursor: default; }
+    .empty { color: #5a6472; font-size: 0.95rem; }
+    .spinner { text-align: center; color: #5a6472; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="card" id="app">
+    <div class="spinner">Loading...</div>
+  </div>
+
+  <script>
+    // Paste the web app URL from Deploy > Manage deployments (ends in /exec).
+    var API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwbCdPMG_dPu__eO3ddRk0WjHB2mmSKn2LKMGXDSor_jADQtvps4iBpSqnzxArVM-PA/exec'
+
+    // Apps Script serves this page inside a sandboxed iframe (IFRAME mode), so
+    // window.location reflects the sandbox's URL, not the ?page=cancel&id=...
+    // URL the user actually clicked. google.script.url.getLocation() is the
+    // documented way to recover the real query params.
+    var eventId = null
+
+    function apiGet(mode, params) {
+      var url = API_BASE_URL + '?mode=' + encodeURIComponent(mode)
+      for (var key in (params || {})) {
+        url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
+      }
+      return fetch(url).then(function (res) { return res.json() })
+    }
+
+    // text/plain avoids a CORS preflight, which Apps Script web apps can't answer.
+    function apiPost(mode, payload) {
+      var body = Object.assign({ mode: mode }, payload)
+      return fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body),
+      }).then(function (res) { return res.json() })
+    }
+
+    function escapeHtml(s) {
+      var div = document.createElement('div')
+      div.textContent = s
+      return div.innerHTML
+    }
+
+    function renderNotFound() {
+      document.getElementById('app').innerHTML =
+        '<h1>Appointment Not Found</h1>' +
+        '<p class="empty">This appointment may have already been canceled, or the link is invalid.</p>'
+    }
+
+    function renderConfirm(details) {
+      document.getElementById('app').innerHTML =
+        '<h1>' + escapeHtml(details.title) + '</h1>' +
+        '<p class="sub">' + escapeHtml(details.when) + '</p>' +
+        '<button class="danger-btn" id="cancelBtn" onclick="doCancel()">Cancel this appointment</button>'
+    }
+
+    function doCancel() {
+      var btn = document.getElementById('cancelBtn')
+      btn.disabled = true
+      btn.textContent = 'Canceling...'
+      apiPost('cancel-appointment', { id: eventId })
+        .then(function (result) {
+          if (result.status !== 'canceled') return renderNotFound()
+          document.getElementById('app').innerHTML =
+            '<h1>Appointment Canceled</h1>' +
+            '<p class="empty">Your appointment has been canceled. You\'re welcome to schedule a new one anytime.</p>'
+        })
+        .catch(function (err) {
+          document.getElementById('app').innerHTML =
+            '<h1>Something went wrong</h1><p class="empty">' + escapeHtml(err && err.message ? err.message : String(err)) + '</p>'
+        })
+    }
+
+    google.script.url.getLocation(function (location) {
+      eventId = location.parameter.id
+      if (!eventId) {
+        renderNotFound()
+        return
+      }
+      apiGet('appointment-cancel-info', { id: eventId })
+        .then(function (result) {
+          if (result.status === 'found') renderConfirm(result)
+          else renderNotFound()
+        })
+        .catch(renderNotFound)
+    })
+  </script>
+</body>
+</html>

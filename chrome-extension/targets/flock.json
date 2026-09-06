@@ -1,0 +1,16 @@
+{
+  "id": "flock",
+  "manifest": {
+    "name": "Flock",
+    "description": "Sync your flock to our google contacts"
+  },
+  "features": [
+    "stop-button",
+    "notes",
+    "record-note",
+    "download-contacts",
+    "get-contacts",
+    "about",
+    "update-contacts"
+  ]
+}

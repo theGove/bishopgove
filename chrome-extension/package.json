@@ -1,0 +1,12 @@
+{
+  "name": "bishopgove-extensions",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "build:flock": "node build.js flock",
+    "build:ysatools": "node build.js ysatools",
+    "zip": "npm run zip:flock && npm run zip:ysatools",
+    "zip:flock": "npm run build:flock && powershell -NoProfile -Command \"Compress-Archive -Path dist/flock/* -DestinationPath dist/flock.zip -Force\"",
+    "zip:ysatools": "npm run build:ysatools && powershell -NoProfile -Command \"Compress-Archive -Path dist/ysatools/* -DestinationPath dist/ysatools.zip -Force\""
+  }
+}

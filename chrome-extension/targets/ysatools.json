@@ -1,0 +1,8 @@
+{
+  "id": "ysatools",
+  "manifest": {
+    "name": "YSA Tools",
+    "description": "Sync your ward members to our google contacts"
+  },
+  "features": []
+}

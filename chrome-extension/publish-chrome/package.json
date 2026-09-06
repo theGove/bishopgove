@@ -1,0 +1,97 @@
+{
+  "name": "publish-chrome",
+  "displayName": "Publish Chrome",
+  "description": "Build, version, and zip the Chrome extension variants (Flock / YSA Tools) for publishing",
+  "version": "0.1.0",
+  "publisher": "bishopgove-local",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "publishChrome",
+          "title": "Publish Chrome",
+          "icon": "$(package)"
+        }
+      ]
+    },
+    "views": {
+      "publishChrome": [
+        {
+          "id": "publishChromeTargets",
+          "name": "Targets"
+        }
+      ]
+    },
+    "commands": [
+      { "command": "publishChrome.refresh", "title": "Refresh", "icon": "$(refresh)", "category": "Publish Chrome" },
+      { "command": "publishChrome.buildAll", "title": "Build All Targets", "icon": "$(tools)", "category": "Publish Chrome" },
+      { "command": "publishChrome.zipAll", "title": "Build && Zip All Targets", "icon": "$(file-zip)", "category": "Publish Chrome" },
+      { "command": "publishChrome.build", "title": "Build Target", "category": "Publish Chrome" },
+      { "command": "publishChrome.zip", "title": "Build && Zip Target", "icon": "$(file-zip)", "category": "Publish Chrome" },
+      { "command": "publishChrome.bumpPatch", "title": "Bump Patch Version", "icon": "$(arrow-up)", "category": "Publish Chrome" },
+      { "command": "publishChrome.bumpMinor", "title": "Bump Minor Version", "category": "Publish Chrome" },
+      { "command": "publishChrome.bumpMajor", "title": "Bump Major Version", "category": "Publish Chrome" },
+      { "command": "publishChrome.openDist", "title": "Reveal dist Folder", "icon": "$(folder-opened)", "category": "Publish Chrome" },
+      { "command": "publishChrome.revealZip", "title": "Reveal Zip File", "icon": "$(file-zip)", "category": "Publish Chrome" },
+      { "command": "publishChrome.openWebStore", "title": "Open Chrome Web Store Dashboard", "icon": "$(link-external)", "category": "Publish Chrome" },
+      { "command": "publishChrome.regenerateVsix", "title": "Regenerate This Extension's VSIX", "icon": "$(archive)", "category": "Publish Chrome" }
+    ],
+    "menus": {
+      "view/title": [
+        { "command": "publishChrome.refresh", "when": "view == publishChromeTargets", "group": "navigation@1" },
+        { "command": "publishChrome.buildAll", "when": "view == publishChromeTargets", "group": "navigation@2" },
+        { "command": "publishChrome.zipAll", "when": "view == publishChromeTargets", "group": "navigation@3" },
+        { "command": "publishChrome.openWebStore", "when": "view == publishChromeTargets", "group": "navigation@4" },
+        { "command": "publishChrome.regenerateVsix", "when": "view == publishChromeTargets", "group": "navigation@5" }
+      ],
+      "view/item/context": [
+        { "command": "publishChrome.build", "when": "view == publishChromeTargets && viewItem == publishTarget", "group": "1_actions@1" },
+        { "command": "publishChrome.zip", "when": "view == publishChromeTargets && viewItem == publishTarget", "group": "1_actions@2" },
+        { "command": "publishChrome.openDist", "when": "view == publishChromeTargets && viewItem == publishTarget", "group": "1_actions@3" },
+        { "command": "publishChrome.revealZip", "when": "view == publishChromeTargets && viewItem == publishTarget", "group": "1_actions@4" },
+        { "command": "publishChrome.bumpPatch", "when": "view == publishChromeTargets && viewItem == publishTarget", "group": "2_version@1" },
+        { "command": "publishChrome.bumpMinor", "when": "view == publishChromeTargets && viewItem == publishTarget", "group": "2_version@2" },
+        { "command": "publishChrome.bumpMajor", "when": "view == publishChromeTargets && viewItem == publishTarget", "group": "2_version@3" }
+      ]
+    },
+    "configuration": {
+      "title": "Publish Chrome",
+      "properties": {
+        "publishChrome.projectRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the folder containing build.js and targets/. Leave empty to auto-detect from the open workspace (checks the workspace root, then its parent)."
+        },
+        "publishChrome.webStoreDashboardUrl": {
+          "type": "string",
+          "default": "https://chrome.google.com/webstore/devconsole",
+          "description": "URL opened by 'Open Chrome Web Store Dashboard'."
+        },
+        "publishChrome.extensionSourcePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to this extension's own source folder (containing its package.json). Leave empty to auto-detect from the open workspace. Used by 'Regenerate This Extension's VSIX'."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package --out publish-chrome.vsix"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^3.9.2"
+  }
+}

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 100%;
+      padding: 20px;
+      font-family: sans-serif;
+      box-sizing: border-box;
+    }
+    <!-- @feature:start stop-button -->
+    #btn-stop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      padding: 10px;
+      background: #d32f2f;
+      color: white;
+      border: none;
+      border-radius: 0;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 200;
+    }
+    #btn-stop:hover { background: #b71c1c; }
+    <!-- @feature:end stop-button -->
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    #btn-menu {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #444;
+      padding: 2px 6px;
+      line-height: 1;
+      border-radius: 4px;
+    }
+    #btn-menu:hover {
+      background: #f0f0f0;
+      color: #111;
+    }
+    #dropdown {
+      display: none;
+      position: absolute;
+      right: 20px;
+      top: 52px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      z-index: 100;
+      min-width: 180px;
+      overflow: hidden;
+    }
+    #dropdown.open { display: block; }
+    .menu-item {
+      display: block;
+      width: 100%;
+      padding: 11px 16px;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: left;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item:hover { background: #f5f5f5; }
+    #settings-panel {
+      display: none;
+      border-top: 1px solid #ddd;
+      padding-top: 14px;
+      margin-top: 4px;
+    }
+    #settings-panel label {
+      display: block;
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+    #settings-panel input {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin-bottom: 8px;
+    }
+    #btn-save-settings {
+      padding: 6px 14px;
+      background: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    #btn-save-settings:hover { background: #2a6dd9; }
+    <!-- @feature:start notes -->
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #555;
+    }
+    .toggle-row input[type="checkbox"] {
+      width: 36px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #4285f4;
+    }
+    <!-- @feature:end notes -->
+    #settings-saved {
+      font-size: 12px;
+      color: green;
+      margin-left: 8px;
+    }
+    #message {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #333;
+    }
+    #members-grid {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .member-tile {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    <!-- @feature:start get-contacts -->
+    .btn-member-info {
+      margin-top: 8px;
+      padding: 4px 10px;
+      font-size: 12px;
+      background: none;
+      color: #4285f4;
+      border: 1px solid #4285f4;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-member-info:hover {
+      background: #4285f4;
+      color: white;
+    }
+    <!-- @feature:end get-contacts -->
+    .member-tile .member-name {
+      font-weight: bold;
+      font-size: 14px;
+      color: #222;
+      margin-bottom: 4px;
+    }
+    <!-- @feature:start get-contacts,notes,update-contacts -->
+    .member-tile .member-detail {
+      font-size: 12px;
+      color: #555;
+      margin-top: 2px;
+    }
+    <!-- @feature:end get-contacts,notes,update-contacts -->
+    #toast {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #323232;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      max-width: 90%;
+      text-align: center;
+      cursor: pointer;
+    }
+    #toast.show {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: fadein 0.2s ease, fadeout 0.4s ease 2.6s forwards;
+    }
+    #toast.loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: fadein 0.2s ease;
+    }
+    .toast-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes fadein  { from { opacity: 0; top: 8px; } to { opacity: 1; top: 16px; } }
+    @keyframes fadeout { from { opacity: 1; } to { opacity: 0; } }
+    <!-- @feature:start record-note -->
+    #form-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: white;
+      z-index: 500;
+      flex-direction: column;
+    }
+    #form-overlay.open { display: flex; }
+    #form-overlay-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #ddd;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    #btn-close-form {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #555;
+      padding: 0 4px;
+    }
+    #form-overlay iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+    <!-- @feature:end record-note -->
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{APP_NAME}}</h1>
+    <button id="btn-menu" title="Menu">&#9776;</button>
+  </div>
+
+  <div id="dropdown">
+    <!-- @feature:start notes -->
+    <button class="menu-item" id="btn-get-notes">Get Notes</button>
+    <!-- @feature:end notes -->
+    <!-- @feature:start record-note -->
+    <button class="menu-item" id="btn-record-note">Record Note</button>
+    <!-- @feature:end record-note -->
+    <!-- @feature:start update-contacts -->
+    <button class="menu-item" id="btn-contacts">Update Contacts</button>
+    <!-- @feature:end update-contacts -->
+    <!-- @feature:start download-contacts -->
+    <button class="menu-item" id="btn-download-contacts">Download Contacts</button>
+    <!-- @feature:end download-contacts -->
+    <!-- @feature:start get-contacts -->
+    <button class="menu-item" id="btn-get-contacts">Get Contacts</button>
+    <!-- @feature:end get-contacts -->
+    <button class="menu-item" id="btn-full-update">Full Update</button>
+    <button class="menu-item" id="btn-add-photos">Add Photos to Table</button>
+    <button class="menu-item" id="btn-table-to-cards">Convert Table to Cards</button>
+    <button class="menu-item" id="btn-import-callings">Import Callings</button>
+    <button class="menu-item" id="btn-save-report">Save Report</button>
+    <!-- @feature:start about -->
+    <button class="menu-item" id="btn-about">About {{APP_NAME}}</button>
+    <!-- @feature:end about -->
+    <button class="menu-item" id="btn-settings">Settings</button>
+  </div>
+
+  <div id="settings-panel">
+    <label for="input-deployment-id">Deployment ID</label>
+    <input type="text" id="input-deployment-id" placeholder="Enter deployment ID">
+    <!-- @feature:start notes -->
+    <div class="toggle-row">
+      <label for="toggle-notes-mode">Notes Mode</label>
+      <input type="checkbox" id="toggle-notes-mode">
+    </div>
+    <!-- @feature:end notes -->
+    <button id="btn-save-settings" style="margin-top:12px;">Save</button>
+    <span id="settings-saved"></span>
+  </div>
+
+  <div id="message"></div>
+  <!-- @feature:start stop-button -->
+  <button id="btn-stop" style="display:none;">Stop</button>
+  <!-- @feature:end stop-button -->
+  <div id="members-grid"></div>
+  <div id="toast"></div>
+
+  <!-- @feature:start record-note -->
+  <div id="form-overlay">
+    <div id="form-overlay-header">
+      <span>Record Note</span>
+      <button id="btn-close-form">&#10005;</button>
+    </div>
+    <iframe id="note-form-frame" src=""></iframe>
+  </div>
+  <!-- @feature:end record-note -->
+
+  <script src="code.js"></script>
+</body>
+</html>

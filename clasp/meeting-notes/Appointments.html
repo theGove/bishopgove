@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Schedule an Appointment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f5f7;
+      color: #1c2024;
+      padding: 16px;
+    }
+    .card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      padding: 20px;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 4px; }
+    p.sub { color: #5a6472; margin: 0 0 16px; font-size: 0.9rem; }
+    .option {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      border: 1px solid #d8dce1;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .option:hover { border-color: #4a6cf7; background: #f6f8ff; }
+    .option .meta { display: block; color: #5a6472; font-size: 0.85rem; margin-top: 2px; }
+    .day-group { margin-bottom: 14px; }
+    .day-label { font-weight: 600; margin-bottom: 6px; }
+    .slot-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .slot-btn {
+      padding: 8px 12px;
+      border: 1px solid #d8dce1;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .slot-btn:hover { border-color: #4a6cf7; background: #f6f8ff; }
+    label { display: block; margin: 12px 0 4px; font-size: 0.9rem; font-weight: 600; }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d8dce1;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .primary-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #4a6cf7;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .primary-btn:disabled { background: #a9b6f5; cursor: default; }
+    .back-link { display: inline-block; margin-bottom: 12px; color: #4a6cf7; cursor: pointer; font-size: 0.9rem; }
+    .error { color: #b3261e; margin-top: 10px; font-size: 0.9rem; }
+    .empty { color: #5a6472; font-size: 0.95rem; }
+    .spinner { text-align: center; color: #5a6472; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="card" id="app">
+    <div class="spinner">Loading...</div>
+  </div>
+
+  <script>
+    // Paste the web app URL from Deploy > Manage deployments (ends in /exec).
+    var API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwbCdPMG_dPu__eO3ddRk0WjHB2mmSKn2LKMGXDSor_jADQtvps4iBpSqnzxArVM-PA/exec'
+
+    var state = { types: [], selectedType: null, slots: [], selectedSlot: null }
+
+    function apiGet(mode, params) {
+      var url = API_BASE_URL + '?mode=' + encodeURIComponent(mode)
+      for (var key in (params || {})) {
+        url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
+      }
+      return fetch(url).then(function (res) { return res.json() })
+    }
+
+    // Apps Script can't handle CORS preflight requests, so this is sent as
+    // text/plain (a "simple request" per the fetch spec) instead of
+    // application/json to avoid triggering one. The backend JSON.parses the
+    // raw body regardless of the declared content type.
+    function apiPost(mode, payload) {
+      var body = Object.assign({ mode: mode }, payload)
+      return fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body),
+      }).then(function (res) { return res.json() })
+    }
+
+    function render() {
+      var app = document.getElementById('app')
+      if (state.view === 'types') app.innerHTML = renderTypes()
+      else if (state.view === 'slots') app.innerHTML = renderSlots()
+      else if (state.view === 'details') app.innerHTML = renderDetails()
+      else if (state.view === 'confirmed') app.innerHTML = renderConfirmed()
+    }
+
+    function renderTypes() {
+      var html = '<h1>Schedule an Appointment</h1><p class="sub">Choose the type of appointment</p>'
+      state.types.forEach(function (t, i) {
+        html += '<button class="option" onclick="chooseType(' + i + ')">' + escapeHtml(t.label) +
+          '<span class="meta">' + t.minutes + ' minutes</span></button>'
+      })
+      return html
+    }
+
+    function chooseType(i) {
+      state.selectedType = state.types[i]
+      state.view = 'slots'
+      state.slots = []
+      render()
+      document.getElementById('app').innerHTML = '<div class="spinner">Finding open times...</div>'
+      apiGet('appointment-slots', { type: state.selectedType.key })
+        .then(function (result) {
+          if (result.status !== 'success') return onError(result)
+          onSlots(result.data)
+        })
+        .catch(onError)
+    }
+
+    function onSlots(slots) {
+      state.slots = slots
+      render()
+    }
+
+    function groupByDay(slots) {
+      var groups = {}
+      var order = []
+      slots.forEach(function (s) {
+        var d = new Date(s.startIso)
+        var key = d.toDateString()
+        if (!groups[key]) { groups[key] = []; order.push(key) }
+        groups[key].push(s)
+      })
+      return order.map(function (key) { return { key: key, slots: groups[key] } })
+    }
+
+    function renderSlots() {
+      var html = '<span class="back-link" onclick="goToTypes()">&larr; Change appointment type</span>'
+      html += '<h1>' + escapeHtml(state.selectedType.label) + '</h1><p class="sub">' + state.selectedType.minutes + ' minutes &mdash; choose a time</p>'
+      if (state.slots.length === 0) {
+        html += '<p class="empty">No open times found in the next 60 days. Please check back later.</p>'
+        return html
+      }
+      groupByDay(state.slots).forEach(function (group) {
+        html += '<div class="day-group"><div class="day-label">' + group.key + '</div><div class="slot-grid">'
+        group.slots.forEach(function (s) {
+          var d = new Date(s.startIso)
+          html += '<button class="slot-btn" onclick="chooseSlot(\'' + s.startIso + '\')">' + formatTime(d) + '</button>'
+        })
+        html += '</div></div>'
+      })
+      return html
+    }
+
+    function goToTypes() {
+      state.view = 'types'
+      render()
+    }
+
+    function chooseSlot(startIso) {
+      state.selectedSlot = state.slots.find(function (s) { return s.startIso === startIso })
+      state.view = 'details'
+      render()
+    }
+
+    function renderDetails() {
+      var d = new Date(state.selectedSlot.startIso)
+      var html = '<span class="back-link" onclick="goToSlots()">&larr; Choose a different time</span>'
+      html += '<h1>' + escapeHtml(state.selectedType.label) + '</h1>'
+      html += '<p class="sub">' + d.toDateString() + ' at ' + formatTime(d) + '</p>'
+      html += '<label for="firstName">First name</label><input id="firstName">'
+      html += '<label for="lastName">Last name</label><input id="lastName">'
+      html += '<label for="phone">Phone number</label><input id="phone" type="tel">'
+      html += '<label for="email">Email address</label><input id="email" type="email">'
+      html += '<div id="formError" class="error"></div>'
+      html += '<button class="primary-btn" id="submitBtn" onclick="submitBooking()">Confirm Appointment</button>'
+      return html
+    }
+
+    function goToSlots() {
+      state.view = 'slots'
+      render()
+    }
+
+    function submitBooking() {
+      var firstName = document.getElementById('firstName').value.trim()
+      var lastName = document.getElementById('lastName').value.trim()
+      var phone = document.getElementById('phone').value.trim()
+      var email = document.getElementById('email').value.trim()
+      var errorEl = document.getElementById('formError')
+      errorEl.textContent = ''
+
+      if (!firstName || !lastName || !phone || !email) {
+        errorEl.textContent = 'Please fill in all fields.'
+        return
+      }
+
+      document.getElementById('submitBtn').disabled = true
+      document.getElementById('submitBtn').textContent = 'Scheduling...'
+
+      apiPost('book-appointment', {
+        typeKey: state.selectedType.key,
+        startIso: state.selectedSlot.startIso,
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+        email: email,
+      }).then(onBooked).catch(onError)
+    }
+
+    function onBooked(result) {
+      if (result.status === 'conflict') {
+        state.view = 'slots'
+        render()
+        apiGet('appointment-slots', { type: state.selectedType.key })
+          .then(function (r) { onSlots(r.data || []) })
+          .catch(onError)
+        return
+      }
+      if (result.status !== 'success') return onError(result)
+      state.confirmedStart = new Date(result.startIso)
+      state.view = 'confirmed'
+      render()
+    }
+
+    function renderConfirmed() {
+      var html = '<h1>You\'re all set!</h1>'
+      html += '<p class="sub">' + escapeHtml(state.selectedType.label) + '<br>' +
+        state.confirmedStart.toDateString() + ' at ' + formatTime(state.confirmedStart) + '</p>'
+      html += '<p class="empty">A confirmation email is on its way, with a link to cancel if needed.</p>'
+      return html
+    }
+
+    function onError(err) {
+      var app = document.getElementById('app')
+      var msg = (err && err.message) ? err.message : String(err)
+      app.innerHTML = '<h1>Something went wrong</h1><p class="error">' + escapeHtml(msg) + '</p>' +
+        '<span class="back-link" onclick="goToTypes()">&larr; Start over</span>'
+    }
+
+    function formatTime(d) {
+      var hours = d.getHours()
+      var minutes = d.getMinutes()
+      var ampm = hours >= 12 ? 'PM' : 'AM'
+      hours = hours % 12
+      if (hours === 0) hours = 12
+      return hours + ':' + (minutes < 10 ? '0' : '') + minutes + ' ' + ampm
+    }
+
+    function escapeHtml(s) {
+      var div = document.createElement('div')
+      div.textContent = s
+      return div.innerHTML
+    }
+
+    state.view = 'types'
+    render()
+    apiGet('appointment-types')
+      .then(function (result) {
+        if (result.status !== 'success') return onError(result)
+        state.types = result.data
+        render()
+      })
+      .catch(onError)
+  </script>
+</body>
+</html>
