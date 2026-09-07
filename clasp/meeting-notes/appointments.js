@@ -20,7 +20,7 @@ const APPOINTMENT_TYPES = [
   { key: "endowment_prep", label: "Meeting to Prepare for Endowment", minutes: 20 },
   { key: "patriarchal_blessing_prep", label: "Meeting to Prepare for Patriarchal Blessing", minutes: 20 },
   { key: "sealing_initial", label: "Initial Meeting to Prepare for Temple Sealing", minutes: 40 },
-  { key: "other", label: "Other", minutes: 20 },
+  { key: "other", label: "Other / Prefer not to say", minutes: 20 },
 ]
 
 function getAppointmentTypes() {
